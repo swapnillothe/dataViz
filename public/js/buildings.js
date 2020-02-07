@@ -1,6 +1,13 @@
 const showData = (buildings) => {
-  const toLine = b => `<strong>${b.name}</strong> <i>${b.height}</i>`;
-  document.querySelector('#chart-data').innerHTML = buildings.map(toLine).join('<hr/>');
+  const buildingsDiv = d3.select('#chart-data').append('div').attr('class', 'buildings');
+ 
+  buildingsDiv.selectAll('.building')
+    .data(buildings)
+    .enter()
+    .append('div')
+    .attr('class','building')
+    .html(b=>`<strong>${b.name}</strong> <i>${b.height}</i><hr/>`); 
+      
 }
 const drawChart = (buildings) => {
   const chartSize = { width: 600, height: 400 };
@@ -25,7 +32,7 @@ const drawChart = (buildings) => {
   const xAxis = d3.axisBottom(x);
   const yAxis = d3.axisLeft(y)
     .ticks(3)
-    .tickFormat(d=>`${d}m`);
+    .tickFormat(d => `${d}m`);
 
   const g = svg.append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
@@ -38,18 +45,18 @@ const drawChart = (buildings) => {
 
   g.append('text')
     .attr('class', 'y axis-label')
-    .attr('x', -(height/2))
+    .attr('x', -(height / 2))
     .attr('y', -60)
     .text('Height (m)');
 
-    g.append('g')
-      .attr('class','x axis')
-      .attr('transform',`translate(0,${height})`)
-      .call(xAxis);
+  g.append('g')
+    .attr('class', 'x axis')
+    .attr('transform', `translate(0,${height})`)
+    .call(xAxis);
 
-    g.append('g')
-      .attr('class','y axis')
-      .call(yAxis);
+  g.append('g')
+    .attr('class', 'y axis')
+    .call(yAxis);
 
 
   const rects = g.selectAll('rect').data(buildings);
