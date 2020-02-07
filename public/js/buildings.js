@@ -3,10 +3,15 @@ const showData = (buildings) => {
   document.querySelector('#chart-data').innerHTML = buildings.map(toLine).join('<hr/>');
 }
 const drawChart = (buildings) => {
-  const [width, height] = [400, 400];
+  const chartSize = { width: 600, height: 400 };
+  const margin = { left: 100, right: 10, top: 10, bottom: 150 };
+
   const svg = d3.select('#chart-area').append('svg')
-    .attr('height', height)
-    .attr('width', width);
+    .attr('height', chartSize.height)
+    .attr('width', chartSize.width);
+
+  const width = chartSize.width - margin.left - margin.right;
+  const height = chartSize.height - margin.top - margin.bottom;
 
   const y = d3.scaleLinear()
     .domain([0, _.maxBy(buildings, 'height').height])
@@ -17,7 +22,37 @@ const drawChart = (buildings) => {
     .range([0, width])
     .padding(0.3);
 
-  const rects = svg.selectAll('rect').data(buildings);
+  const xAxis = d3.axisBottom(x);
+  const yAxis = d3.axisLeft(y)
+    .ticks(3)
+    .tickFormat(d=>`${d}m`);
+
+  const g = svg.append('g')
+    .attr('transform', `translate(${margin.left},${margin.top})`);
+
+  g.append('text')
+    .attr('class', 'x axis-label')
+    .attr('x', width / 2)
+    .attr('y', height + margin.bottom - margin.top)
+    .text('Tall Buildings');
+
+  g.append('text')
+    .attr('class', 'y axis-label')
+    .attr('x', -(height/2))
+    .attr('y', -60)
+    .text('Height (m)');
+
+    g.append('g')
+      .attr('class','x axis')
+      .attr('transform',`translate(0,${height})`)
+      .call(xAxis);
+
+    g.append('g')
+      .attr('class','y axis')
+      .call(yAxis);
+
+
+  const rects = g.selectAll('rect').data(buildings);
   const newRects = rects.enter();
   newRects.append('rect')
     .attr('x', b => x(b.name))
