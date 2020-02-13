@@ -41,24 +41,21 @@ const updateChart = (companies, fieldName) => {
 
   const rects = companiesG.selectAll('rect').data(companies, companyNameAsId);
 
-  rects.enter()
-    .append('rect')
-    .attr('height', 0)
-    .attr('y', y(0))
-    .attr('x', c => x(c.Name))
-    .attr('width', x.bandwidth)
-    .attr('fill', b => color(b.Name));
-
   rects
     .exit()
     .remove();
 
-  rects
+  rects.enter()
+    .append('rect')    
+    .attr('fill', b => color(b.Name))
+    .attr('y', y(0))
+    .attr('x', c => x(c.Name))    
+    .merge(rects)
     .transition(slow())
-    .attr('height', b => y(0) - y(b[fieldName]))
-    .attr('y', b => y(b[fieldName]))
-    .attr('x', b => x(b.Name))
-    .attr('width', x.bandwidth);
+      .attr('height', b => y(0) - y(b[fieldName]))
+      .attr('y', b => y(b[fieldName]))
+      .attr('x', b => x(b.Name))
+      .attr('width', x.bandwidth);
 }
 const initChart = () => {
   const svg = d3.select('#chart-area svg')
