@@ -1,0 +1,44 @@
+svg {
+  border: 1px solid grey;
+}
+
+.axis-label {
+  font-size: 20px;
+  text-anchor: middle;
+}
+
+.y.axis-label {
+  transform: rotate(-90deg)
+}
+.x.axis text{
+  font-weight: bold;
+  text-anchor: end;
+  transform: rotate(-40deg);
+}
+
+.Close{
+  fill: none;
+  stroke: black;
+  stroke-width: 2px;
+}
+.sma{
+  fill: none;
+  stroke: blue;
+  stroke-width: 2px;
+}
+#date-range svg{
+  width: 800px;
+  height: 100px;
+}
+.controls{
+  transform: translate(30px,30px);
+}
+#slider .tick text{
+  text-anchor: end;
+  transform: rotate(-40deg);
+}
+.controls text{
+  font-weight: lighter;
+  font-size: small;
+  transform: translate(30px,-5px);
+}

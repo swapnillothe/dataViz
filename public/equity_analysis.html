@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Equity Analysis</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">  
+  <link rel="stylesheet" href="css/equity_analysis.css">
+  <script src="https://unpkg.com/d3-simple-slider"></script>
+</head>
+
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js" integrity="sha256-VeNaFBVDhoX3H+gJ37DpT/nTuZTdjYro9yBruHjVmoQ=" crossorigin="anonymous"></script>  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.15.0/d3.min.js" integrity="sha256-m0QmIsBXcOMiETRmpT3qg2IQ/i0qazJA2miCHzOmS1Y=" crossorigin="anonymous"></script>
+  <script src="js/equity_analysis.js"></script>
+
+  <div class="container">
+    <div class="row">
+      <div id="date-range" class="col-sm">
+        <svg>
+          <g class="controls">
+            <g id="slider"></g>
+            <text id="range"></text>
+          </g>
+        </svg>
+      </div>
+      <div id="sma-controls" class="col-sm">
+        <input type="number" name="period" id="" value="100">
+      </div>
+    </div>
+    <div class="row">
+      <div id="chart-area" class = "col-sm"></div>
+    </div>
+    <div class="row">
+      <div class="transactions col6">
+        Transactions
+        <table class="table">
+          <thead>
+            <tr><td></td><th colspan="2">Buy</th><th colspan="2">Sell</th></tr>
+            <tr><th>No.</th><th>Date</th><th>Price</th><th>Date</th><th>Price</th><th>Profit</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="col-sm"></div>
+      <div class="summary col3">
+        Summary
+        <table class="table"><tbody></tbody></table>
+      </div>
+    </div>
+    
+  </div>
+</body>
+
+</html>
