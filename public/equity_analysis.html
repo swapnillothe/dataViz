@@ -16,26 +16,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.15.0/d3.min.js" integrity="sha256-m0QmIsBXcOMiETRmpT3qg2IQ/i0qazJA2miCHzOmS1Y=" crossorigin="anonymous"></script>
   <script src="js/equity_analysis.js"></script>
 
-  <div class="container">
+  <div class="container">    
     <div class="row">
-      <div id="date-range" class="col-sm">
-        <svg>
-          <g class="controls">
-            <g id="slider"></g>
-            <text id="range"></text>
-          </g>
-        </svg>
-      </div>
-      <div id="sma-controls" class="col-sm">
-        <input type="number" name="period" id="" value="100">
-      </div>
-    </div>
+      <h3>Chart</h3>
+      <div id="chart-area"></div>
+    </div>        
     <div class="row">
-      <div id="chart-area" class = "col-sm"></div>
-    </div>
-    <div class="row">
-      <div class="transactions col6">
-        Transactions
+      <div class="transactions col-6">
+       <h3>Transactions</h3>
         <table class="table">
           <thead>
             <tr><td></td><th colspan="2">Buy</th><th colspan="2">Sell</th></tr>
@@ -44,9 +32,15 @@
           <tbody></tbody>
         </table>
       </div>
-      <div class="col-sm"></div>
-      <div class="summary col3">
-        Summary
+      <div class="controls col-3">
+        <h3>Controls</h3>
+        <div class="input-group">
+          <input type="number" name="period" id="sma1" placeholder="100" class="period">
+          <label for="sma1">SMA</label>
+        </div>       
+      </div>
+      <div class="summary col-3">
+       <h3>Statistics</h3>
         <table class="table"><tbody></tbody></table>
       </div>
     </div>

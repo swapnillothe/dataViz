@@ -7,44 +7,6 @@ const slow = () => d3.transition().duration(500).ease(d3.easeLinear);
 const color = d3.scaleOrdinal(d3.schemeCategory10);
 let _allQuotes, _transactions, _summary;
 
-const addDays = (date, days) => {
-  const r = new Date(date);
-  r.setTime(r.getTime() + days * 24 * 60 * 60 * 1000);
-  return r;
-}
-
-const updateChart = (quotes) => {
-  const svg = d3.select('#chart-area svg');
-  const smas = _.map(_.filter(quotes, 'sma'), 'sma');
-  const maxDomain = Math.max(_.maxBy(quotes, 'High').High, ...smas);
-  const minDomain = Math.min(_.minBy(quotes, 'Low').Low, ...smas);
-
-  const y = d3.scaleLinear()
-    .domain([minDomain, maxDomain])
-    .range([height, 0]);
-
-  const yAxis = d3.axisLeft(y).ticks(10);
-  svg.select('.y.axis').call(yAxis);
-
-  const startTime = addDays(_.first(quotes).Time, -20);
-  const endTime = addDays(_.last(quotes).Time, 20);
-  const x = d3.scaleTime()
-    .domain([startTime, endTime])
-    .range([0, width]);
-
-
-  const xAxis = d3.axisBottom(x);
-  svg.select('.x.axis').call(xAxis);
-
-  const pricesG = svg.select('.prices');
-  const updatePath = field => {
-    const line = d3.line().x(q => x(q.Time)).y(q => y(q[field]));
-    pricesG.select(`path.${field}`).attr('d', line(_.filter(quotes, field)));
-  }
-  updatePath('Close');
-  updatePath('sma');
-
-}
 const initChart = () => {
   const svg = d3.select('#chart-area').append('svg')
     .attr('height', chartSize.height)
@@ -86,19 +48,69 @@ const initControls = (quotes) => {
     .min(0)
     .max(quotes.length - 1)
     .default([0, quotes.length - 1])
-    .width(600)
+    .width(chartSize.width - margin.right - margin.left)
     .ticks(20)
     .tickFormat(i => quotes[_.floor(i)].Date.match(/(.*-.*)-/)[1])
     .fill('grey')
-    .on('onchange', (range) => {
-      d3.select('#date-range svg #range').text(dateRangeToText(range));
-      updateChart(_.slice(_allQuotes, range[0], range[1] + 1));
+    .on('onchange', ([from,to]) => {
+      d3.select('#fromDate').text(toDateText(from));
+      d3.select('#toDate').text(toDateText(to));      
+      updateChart(_.slice(_allQuotes, from, to + 1));
     });
-
-  const sliderG = d3.select('#date-range svg g#slider')
+  const pricesG = d3.select('.prices');
+  pricesG.append('text')
+    .attr('id','fromDate')
+    .attr('transform',`translate(0,${height + margin.bottom/3})`)
+    .text(_.first(quotes).Date);
+  pricesG.append('text')
+    .attr('id','toDate')
+    .attr('transform',`translate(${width},${height + margin.bottom/3})`)
+    .text(_.last(quotes).Date);
+  const sliderG = pricesG.append('g')
+    .attr('id', 'slider')
+    .attr('transform', `translate(0,${height + margin.bottom / 2})`)
     .call(slider);
-  document.querySelector('#sma-controls [name=period]').addEventListener('change', (e) => recalculateAndDraw(+e.target.value));
+  document.querySelector('.controls [name=period]').addEventListener('change', (e) => recalculateAndDraw(+e.target.value));
 }
+const addDays = (date, days) => {
+  const r = new Date(date);
+  r.setTime(r.getTime() + days * 24 * 60 * 60 * 1000);
+  return r;
+}
+
+const updateChart = (quotes) => {
+  const svg = d3.select('#chart-area svg');
+  const smas = _.map(_.filter(quotes, 'sma'), 'sma');
+  const maxDomain = Math.max(_.maxBy(quotes, 'High').High, ...smas);
+  const minDomain = Math.min(_.minBy(quotes, 'Low').Low, ...smas);
+
+  const y = d3.scaleLinear()
+    .domain([minDomain, maxDomain])
+    .range([height, 0]);
+
+  const yAxis = d3.axisLeft(y).ticks(10);
+  svg.select('.y.axis').call(yAxis);
+
+  const startTime = addDays(_.first(quotes).Time, -20);
+  const endTime = addDays(_.last(quotes).Time, 20);
+  const x = d3.scaleTime()
+    .domain([startTime, endTime])
+    .range([0, width]);
+
+
+  const xAxis = d3.axisBottom(x);
+  svg.select('.x.axis').call(xAxis);
+
+  const pricesG = svg.select('.prices');
+  const updatePath = field => {
+    const line = d3.line().x(q => x(q.Time)).y(q => y(q[field]));
+    pricesG.select(`path.${field}`).attr('d', line(_.filter(quotes, field)));
+  }
+  updatePath('Close');
+  updatePath('sma');
+
+}
+
 
 const parseQuotes = ({ Date, Volume, ...rest }) => {
   _.forEach(rest, (v, k) => rest[k] = +v);
@@ -125,15 +137,15 @@ const computeSummary = () => {
   const lossList = _.filter(_transactions, t => t.profit <= 0);
   const wins = winList.length, losses = lossList.length;
   const played = wins + losses;
-  const winPercent = _.round(wins * 100 / played);
+  const win_percent = _.round(wins * 100 / played);
   const netProfit = _.sumBy(winList, 'profit');
   const netLoss = - _.sumBy(lossList, 'profit');
-  const avgWin = _.round(netProfit / wins);
-  const avgLoss = _.round(netLoss / losses);
-  const winMultiple = _.round(avgWin / avgLoss, 1);
-  const totalPoints = _.round(netProfit - netLoss);
-  const expectency = _.round(totalPoints / played);
-  _summary = { played, wins, losses, winPercent, avgWin, avgLoss, winMultiple,  totalPoints, expectency };
+  const average_win_size = _.round(netProfit / wins);
+  const average_loss_size = _.round(netLoss / losses);
+  const win_loss_multiple = _.round(average_win_size / average_loss_size, 1);
+  const total_profit = _.round(netProfit - netLoss);
+  const expectency = _.round(total_profit / played);
+  _summary = { total_profit, played, expectency, wins, losses, win_percent, average_win_size, average_loss_size, win_loss_multiple };
 }
 const analyze = (quotes, period = 100) => {
   _.forEach(quotes, q => delete q.sma);
@@ -168,7 +180,7 @@ const updateTransactionsSummary = () => {
     .enter()
     .append('tr');
 
-  summaryTr.append('th').text(_.identity);
+  summaryTr.append('th').text(k=>k.replace(/_/g,' '));
   summaryTr.append('td').text(k => _summary[k]);
 
 }

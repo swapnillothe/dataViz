@@ -15,7 +15,16 @@ svg {
   text-anchor: end;
   transform: rotate(-40deg);
 }
-
+.transactions table tr th{
+  text-align: center;
+}
+.transactions table tr td{
+  text-align: right;
+}
+.controls .period{
+  width: 25%;
+  border-radius: 4px;;
+}
 .Close{
   fill: none;
   stroke: black;
@@ -30,9 +39,15 @@ svg {
   width: 800px;
   height: 100px;
 }
-.controls{
-  transform: translate(30px,30px);
+#fromDate{
+  text-anchor:start;
+  font-size: small;
 }
+#toDate{
+  text-anchor:end;
+  font-size: small;
+}
+
 #slider .tick text{
   text-anchor: end;
   transform: rotate(-40deg);
