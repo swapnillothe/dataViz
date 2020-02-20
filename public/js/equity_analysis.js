@@ -47,7 +47,7 @@ const initControls = (quotes) => {
     .min(0)
     .max(quotes.length - 1)
     .default([0, quotes.length - 1])
-    .width(chartSize.width - margin.right - margin.left)
+    .width(width)
     .ticks(20)
     .tickFormat(i => quotes[_.floor(i)].Date.match(/(.*-.*)-/)[1])
     .fill('grey')
@@ -67,7 +67,7 @@ const initControls = (quotes) => {
     .text(_.last(quotes).Date);
   const sliderG = pricesG.append('g')
     .attr('id', 'slider')
-    .attr('transform', `translate(0,${height + margin.bottom / 2})`)
+    .attr('transform', `translate(-${margin.right},${height + margin.bottom / 2})`)
     .call(slider);
   document.querySelector('.controls [name=period]').addEventListener('change', (e) => recalculateAndDraw(+e.target.value, slider.value()));
 }
