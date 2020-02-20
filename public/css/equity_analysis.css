@@ -15,6 +15,9 @@ svg {
   text-anchor: end;
   transform: rotate(-40deg);
 }
+.tick line{
+  stroke: lightgrey;
+}
 .transactions table tr th{
   text-align: center;
 }

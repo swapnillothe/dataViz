@@ -51,19 +51,19 @@ const initControls = (quotes) => {
     .ticks(20)
     .tickFormat(i => quotes[_.floor(i)].Date.match(/(.*-.*)-/)[1])
     .fill('grey')
-    .on('onchange', ([from,to]) => {
+    .on('onchange', ([from, to]) => {
       d3.select('#fromDate').text(toDateText(from));
-      d3.select('#toDate').text(toDateText(to));      
+      d3.select('#toDate').text(toDateText(to));
       updateChart(_.slice(_allQuotes, from, to + 1));
     });
   const pricesG = d3.select('.prices');
   pricesG.append('text')
-    .attr('id','fromDate')
-    .attr('transform',`translate(0,${height + margin.bottom/3})`)
+    .attr('id', 'fromDate')
+    .attr('transform', `translate(0,${height + margin.bottom / 3})`)
     .text(_.first(quotes).Date);
   pricesG.append('text')
-    .attr('id','toDate')
-    .attr('transform',`translate(${width},${height + margin.bottom/3})`)
+    .attr('id', 'toDate')
+    .attr('transform', `translate(${width},${height + margin.bottom / 3})`)
     .text(_.last(quotes).Date);
   const sliderG = pricesG.append('g')
     .attr('id', 'slider')
@@ -87,18 +87,25 @@ const updateChart = (quotes) => {
     .domain([minDomain, maxDomain])
     .range([height, 0]);
 
-  const yAxis = d3.axisLeft(y).ticks(10);
+  const yAxis = d3.axisLeft(y).ticks(20);
   svg.select('.y.axis').call(yAxis);
 
-  const startTime = addDays(_.first(quotes).Time, -20);
-  const endTime = addDays(_.last(quotes).Time, 20);
+  svg.selectAll('.y.axis .tick line')
+    .attr('x2', width + margin.left);
+
+
+  const startTime = _.first(quotes).Time;
+  const endTime = _.last(quotes).Time;
   const x = d3.scaleTime()
     .domain([startTime, endTime])
     .range([0, width]);
 
 
-  const xAxis = d3.axisBottom(x);
+  const xAxis = d3.axisBottom(x).ticks(20);
   svg.select('.x.axis').call(xAxis);
+
+  svg.selectAll('.x.axis .tick line')
+    .attr('y2', -height - margin.bottom);
 
   const pricesG = svg.select('.prices');
   const updatePath = field => {
@@ -179,7 +186,7 @@ const updateTransactionsSummary = () => {
     .enter()
     .append('tr');
 
-  summaryTr.append('th').text(k=>k.replace(/_/g,' '));
+  summaryTr.append('th').text(k => k.replace(/_/g, ' '));
   summaryTr.append('td').text(k => _summary[k]);
 
 }
