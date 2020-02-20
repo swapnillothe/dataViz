@@ -42,9 +42,8 @@ const initChart = () => {
 };
 const initControls = (quotes) => {
   const toDateText = index => quotes[_.floor(index)].Date;
-  const dateRangeToText = ([from, to]) => `${toDateText(from)} .. ${toDateText(to)}`;
 
-  const slider = d3.sliderBottom()
+  slider = d3.sliderBottom()
     .min(0)
     .max(quotes.length - 1)
     .default([0, quotes.length - 1])
@@ -70,7 +69,7 @@ const initControls = (quotes) => {
     .attr('id', 'slider')
     .attr('transform', `translate(0,${height + margin.bottom / 2})`)
     .call(slider);
-  document.querySelector('.controls [name=period]').addEventListener('change', (e) => recalculateAndDraw(+e.target.value));
+  document.querySelector('.controls [name=period]').addEventListener('change', (e) => recalculateAndDraw(+e.target.value, slider.value()));
 }
 const addDays = (date, days) => {
   const r = new Date(date);
@@ -184,9 +183,10 @@ const updateTransactionsSummary = () => {
   summaryTr.append('td').text(k => _summary[k]);
 
 }
-const recalculateAndDraw = (period) => {
+const recalculateAndDraw = (period, range) => {
   analyze(_allQuotes, period);
-  updateChart(_allQuotes);
+  const quotes = range && _.slice(_allQuotes, range[0], range[1] + 1) || _allQuotes;
+  updateChart(quotes);
   updateTransactionsSummary();
 }
 const startVisualization = (quotes) => {
