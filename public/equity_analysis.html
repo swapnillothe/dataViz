@@ -26,22 +26,26 @@
       <div class="outcomes"></div>
     </div>        
     <div class="row">
-      <div class="transactions col-6">
+      <div class="transactions col-7">
        <h3>Transactions</h3>
         <table class="table">
           <thead>
             <tr><td></td><th colspan="2">Buy</th><th colspan="2">Sell</th></tr>
-            <tr><th>No.</th><th>Date</th><th>Price</th><th>Date</th><th>Price</th><th>Profit</th></tr>
+            <tr><th>No.</th><th>Date</th><th>Units</th><th>Price</th><th>Date</th><th>Price</th><th>Profit</th></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
-      <div class="controls col-3">
+      <div class="controls col-2">
         <h3>Controls</h3>
         <div class="input-group">
-          <input type="number" name="period" id="sma1" placeholder="100" class="period">
+          <input type="number" name="period" id="sma1" min="0" placeholder="100" class="small-input-text">
           <label for="sma1">SMA</label>
-        </div>       
+        </div>
+        <div class="input-group">
+          <input type="number" name="risk" id="risk" min="0" placeholder="amount" class="small-input-text">
+          <label for="risk">Risk</label>
+        </div>      
       </div>
       <div class="summary col-3">
        <h3>Statistics</h3>

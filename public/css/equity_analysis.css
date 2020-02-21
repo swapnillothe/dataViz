@@ -24,8 +24,7 @@ svg {
 .transactions table tr td{
   text-align: right;
 }
-.controls .period{
-  width: 25%;
+.controls .small-input-text{
   border-radius: 4px;;
 }
 .Close{
