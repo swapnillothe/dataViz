@@ -91,8 +91,7 @@ const updateChart = (quotes) => {
   svg.select('.y.axis').call(yAxis);
 
   svg.selectAll('.y.axis .tick line')
-    .attr('x2', width + margin.left);
-
+    .attr('x2', x.range()[1]);
 
   const startTime = _.first(quotes).Time;
   const endTime = _.last(quotes).Time;
@@ -105,7 +104,7 @@ const updateChart = (quotes) => {
   svg.select('.x.axis').call(xAxis);
 
   svg.selectAll('.x.axis .tick line')
-    .attr('y2', -height - margin.bottom);
+    .attr('y2', y.range()[1]);
 
   const pricesG = svg.select('.prices');
   const updatePath = field => {
@@ -151,7 +150,9 @@ const computeSummary = () => {
   const win_loss_multiple = _.round(average_win_size / average_loss_size, 1);
   const total_profit = _.round(netProfit - netLoss);
   const expectency = _.round(total_profit / played);
-  _summary = { total_profit, played, expectency, wins, losses, win_percent, average_win_size, average_loss_size, win_loss_multiple };
+  const worst_loss = -_.round(_.minBy(lossList,'profit').profit);
+  const best_win = _.round(_.maxBy(winList,'profit').profit);
+  _summary = { total_profit, played, expectency, wins, losses, win_percent, average_win_size, average_loss_size, win_loss_multiple, worst_loss, best_win };
 }
 const analyze = (quotes, period = 100) => {
   _.forEach(quotes, q => delete q.sma);
@@ -164,6 +165,9 @@ const analyze = (quotes, period = 100) => {
   })
   detectTransactions();
   computeSummary();
+}
+const updateObservations = ()=>{
+  
 }
 const updateTransactionsSummary = () => {
   const r = x => _.round(x);
@@ -195,6 +199,7 @@ const recalculateAndDraw = (period, range) => {
   const quotes = range && _.slice(_allQuotes, range[0], range[1] + 1) || _allQuotes;
   updateChart(quotes);
   updateTransactionsSummary();
+  updateObservations();
 }
 const startVisualization = (quotes) => {
   initChart();
