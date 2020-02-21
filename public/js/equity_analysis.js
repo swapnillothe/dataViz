@@ -45,11 +45,11 @@ const initChart = () => {
 
 
   g.append('path').attr('class', 'Close');
-  smas.forEach(s=>g.append('path').attr('class',s).attr('stroke',color(s)));
+  smas.forEach(s => g.append('path').attr('class', s).attr('stroke', color(s)));
 
 };
 
-const initObservations = () => {
+const initOutComes = () => {
   const svg = d3.select('.outcomes').append('svg')
     .attr('height', chartSize.height)
     .attr('width', chartSize.width);
@@ -82,7 +82,7 @@ const initObservations = () => {
 }
 
 const initControls = () => {
-  const watchChange = name=> document.querySelector(`.controls #${name}`).addEventListener('change',recalculateAndDraw);
+  const watchChange = name => document.querySelector(`.controls #${name}`).addEventListener('change', recalculateAndDraw);
   'sma1,sma2,sma3,tolerance'.split(',').forEach(watchChange);
 
   slider = d3.sliderBottom()
@@ -105,7 +105,7 @@ const initControls = () => {
   pricesG.append('g')
     .attr('id', 'slider')
     .attr('transform', `translate(-${margin.right},${height + margin.bottom / 2})`)
-    .call(slider); 
+    .call(slider);
 }
 const addDays = (date, days) => {
   const r = new Date(date);
@@ -118,7 +118,7 @@ const updateChart = () => {
   d3.select('#fromDate').text(_.first(quotes).Date);
   d3.select('#toDate').text(_.last(quotes).Date);
   const svg = d3.select('#chart-area svg');
-  const smaValues = _.filter(_.flatten(_.map(smas,s=>_.map(quotes, s))),_.identity);
+  const smaValues = _.filter(_.flatten(_.map(smas, s => _.map(quotes, s))), _.identity);
   const maxDomain = Math.max(_.maxBy(quotes, 'High').High, ...smaValues);
   const minDomain = Math.min(_.minBy(quotes, 'Low').Low, ...smaValues);
 
@@ -155,7 +155,8 @@ const updateChart = () => {
   smas.forEach(updatePath);
 
 }
-const updateObservations = () => {
+
+const updateOutcomes = () => {
   const svg = d3.select('.outcomes svg');
   const maxDomain = _.maxBy(_transactions, 'profit').profit;
   const minDomain = _.minBy(_transactions, 'profit').profit;
@@ -199,8 +200,8 @@ const parseQuotes = ({ Date, Volume, ...rest }) => {
   return { Date, Time: new window.Date(Date), ...rest };
 }
 
-const calculatePositionSize = (capital, risk, price)=>{
-  
+const calculatePositionSize = (capital, risk, price) => {
+
 }
 const detectTransactions = () => {
   const tolerance = readTolerance();
@@ -210,12 +211,12 @@ const detectTransactions = () => {
     const goLong = q.Close > (q.sma1 + tolerance);
     const goShort = q.Close < (q.sma1 - tolerance);
     if (goLong && !isLong) transactions.push({ buy: q });
-    if (goShort && isLong) t.sell = q;     
+    if (goShort && isLong) t.sell = q;
     return transactions;
   };
   _transactions = _.reduce(_.filter(_allQuotes, 'sma1'), accumulateTrades, []);
   const t = _.last(_transactions);
-  if (!t.sell) t.sell = _.last(_allQuotes);   
+  if (!t.sell) t.sell = _.last(_allQuotes);
   _.forEach(_transactions, t => t.profit = (t.sell.Close - t.buy.Close));
 }
 const computeSummary = () => {
@@ -231,16 +232,16 @@ const computeSummary = () => {
   const win_loss_multiple = _.round(average_win_size / average_loss_size, 1);
   const total_profit = _.round(netProfit - netLoss);
   const expectency = _.round(total_profit / played);
-  const worst_loss = -_.round(_.get(_.minBy(lossList, 'profit'),'profit',0));
-  const best_win = _.round(_.get(_.maxBy(winList, 'profit'),'profit',0));
+  const worst_loss = -_.round(_.get(_.minBy(lossList, 'profit'), 'profit', 0));
+  const best_win = _.round(_.get(_.maxBy(winList, 'profit'), 'profit', 0));
   _summary = { total_profit, played, expectency, wins, losses, win_percent, average_win_size, average_loss_size, win_loss_multiple, worst_loss, best_win };
 }
 const smas = 'sma1,sma2,sma3'.split(',');
 
-const updateSMA = name=>{
+const updateSMA = name => {
   const period = readControl(name);
   _.forEach(_allQuotes, q => delete q[name]);
-  if(!period) return;
+  if (!period) return;
   let sum = 0;
   _.forEach(_allQuotes, (q, i) => {
     const pStart = i - period;
@@ -250,7 +251,7 @@ const updateSMA = name=>{
   })
 }
 const analyze = () => {
-  _.forEach(smas,updateSMA);
+  _.forEach(smas, updateSMA);
   detectTransactions();
   computeSummary();
 }
@@ -282,13 +283,13 @@ const updateTransactionsSummary = () => {
 const recalculateAndDraw = () => {
   analyze();
   updateTransactionsSummary();
-  updateObservations();
+  updateOutcomes();
 
   updateChart();
 }
 const startVisualization = (quotes) => {
   initChart();
-  initObservations();
+  initOutComes();
   _allQuotes = quotes;
   initControls();
   recalculateAndDraw();
