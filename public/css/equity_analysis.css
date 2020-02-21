@@ -59,3 +59,20 @@ svg {
   font-size: small;
   transform: translate(30px,-5px);
 }
+.hidden{
+  display: none;
+}
+.crosshair .hover-line{
+  stroke: purple;
+  stroke-width: 2px;
+  stroke-dasharray: 5,5;
+}
+.crosshair rect{
+  fill: none;
+  pointer-events: all;
+}
+.crosshair .lines text{
+  text-anchor: middle;
+  font-size: small;
+  stroke: purple;
+}

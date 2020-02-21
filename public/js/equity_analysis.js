@@ -9,7 +9,7 @@ let _allQuotes, _transactions, _summary, slider;
 const readControl = name => +document.querySelector(`.controls #${name}`).value;
 const readSMA1 = () => readControl('sma1') || 100;
 const readTolerance = () => readControl('tolerance') || 0;
-
+let showQuoteLines;
 const getVisibleQuotes = () => {
   const range = slider.value();
   const [from, to] = range;
@@ -46,6 +46,18 @@ const initChart = () => {
 
   g.append('path').attr('class', 'Close');
   smas.forEach(s => g.append('path').attr('class', s).attr('stroke', color(s)));
+
+  const crosshairG = g.append('g').attr('class', 'crosshair');
+  const linesG = crosshairG.append('g').attr('class','lines hidden');
+  const showCrossHair = () => document.querySelector('.crosshair .lines').classList.remove('hidden');
+  const hideCrossHair = () => document.querySelector('.crosshair .lines').classList.add('hidden');
+  
+  linesG.append('line').attr('class', 'x hover-line').attr('y1', 0).attr('y2', height);
+  linesG.append('line').attr('class', 'y hover-line').attr('x1', 0).attr('x2', width);
+  linesG.append('text').attr('class','x').attr('y',height);
+  linesG.append('text').attr('class','y').attr('x',0);
+  const crosshairRect = crosshairG.append('rect').attr('width', width).attr('height', height);
+  crosshairRect.on('mouseover', showCrossHair).on('mouseout', hideCrossHair).on('mousemove', function(){showQuoteLines(this)});
 
 };
 
@@ -153,6 +165,20 @@ const updateChart = () => {
   }
   updatePath('Close');
   smas.forEach(updatePath);
+  showQuoteLines = function(e){
+    //d3.select('.x.hover-line').attr('x',0).attr('y2',height);
+    const [rx,ry] = d3.mouse(e);
+   
+    const time = x.invert(rx);
+    const q = _.findLast(_allQuotes, q=> q.Time <= time);
+    //console.log(dx);
+    //console.log(q.Close, q.Date);
+    const [nx, ny] = [x(q.Time),y(q.Close)];
+    d3.select('.x.hover-line').attr('x1',nx).attr('x2',nx);
+    d3.select('.y.hover-line').attr('y1',ny).attr('y2',ny);
+    d3.select('.crosshair .lines text.x').attr('x',rx).text(q.Date);
+    d3.select('.crosshair .lines text.y').attr('y',ry).text(q.Close);
+  }
 
 }
 
@@ -196,7 +222,7 @@ const updateOutcomes = () => {
 }
 
 const parseQuotes = ({ Date, Volume, ...rest }) => {
-  _.forEach(rest, (v, k) => rest[k] = +v);
+  _.forEach(rest, (v, k) => rest[k] = _.round(+v));
   return { Date, Time: new window.Date(Date), ...rest };
 }
 
