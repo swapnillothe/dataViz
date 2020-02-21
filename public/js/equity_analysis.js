@@ -40,6 +40,38 @@ const initChart = () => {
   g.append('path').attr('class', 'sma');
 
 };
+
+const initObservations = () => {
+  const svg = d3.select('.outcomes').append('svg')
+    .attr('height', chartSize.height)
+    .attr('width', chartSize.width);
+
+  const g = svg.append('g')
+    .attr('class', 'profit')
+    .attr('transform', `translate(${margin.left},${margin.top})`);
+
+  g.append('text')
+    .attr('class', 'x axis-label')
+    .attr('x', width / 2)
+    .attr('y', height + margin.bottom - margin.top)
+    .text('Trades');
+
+  g.append('text')
+    .attr('class', 'y axis-label')
+    .attr('x', -(height / 2))
+    .attr('y', -60)
+    .text('Profit');
+
+  g.append('g')
+    .attr('class', 'x axis')
+    .attr('transform', `translate(0,${height})`)
+
+  g.append('g')
+    .attr('class', 'y axis');
+
+  g.append('g').attr('class','profits');
+
+}
 const initControls = (quotes) => {
   const toDateText = index => quotes[_.floor(index)].Date;
 
@@ -90,8 +122,6 @@ const updateChart = (quotes) => {
   const yAxis = d3.axisLeft(y).ticks(20);
   svg.select('.y.axis').call(yAxis);
 
-  svg.selectAll('.y.axis .tick line')
-    .attr('x2', x.range()[1]);
 
   const startTime = _.first(quotes).Time;
   const endTime = _.last(quotes).Time;
@@ -99,12 +129,15 @@ const updateChart = (quotes) => {
     .domain([startTime, endTime])
     .range([0, width]);
 
+  svg.selectAll('.y.axis .tick line')
+    .attr('x2', x.range()[1]);
+
 
   const xAxis = d3.axisBottom(x).ticks(20);
   svg.select('.x.axis').call(xAxis);
 
   svg.selectAll('.x.axis .tick line')
-    .attr('y2', y.range()[1]);
+    .attr('y2', -y.range()[0]);
 
   const pricesG = svg.select('.prices');
   const updatePath = field => {
@@ -115,7 +148,44 @@ const updateChart = (quotes) => {
   updatePath('sma');
 
 }
+const updateObservations = () => {
+  const svg = d3.select('.outcomes svg');
+  const maxDomain = _.maxBy(_transactions, 'profit').profit;
+  const minDomain = _.minBy(_transactions, 'profit').profit;
 
+  const y = d3.scaleLinear()
+    .domain([minDomain, maxDomain])
+    .range([height, 0]);
+
+  const yAxis = d3.axisLeft(y).ticks(20);
+  svg.select('.y.axis').call(yAxis);
+
+  const x = d3.scaleBand()
+    .domain(_.times(_transactions.length))
+    .range([0, width])
+    .padding(0.3);
+
+  svg.selectAll('.y.axis .tick line')
+    .attr('x2', x.range()[1]);
+
+  const xAxis = d3.axisBottom(x).ticks(20).tickFormat(i => i + 1);
+  svg.select('.x.axis').call(xAxis);
+
+  svg.selectAll('.x.axis .tick line')
+    .attr('y2', y.range()[1]);
+
+  document.querySelector('.profits').innerHTML = '';
+  const rects = svg.select('.profits').selectAll('rect').data(_transactions);
+
+  rects.enter()
+    .append('rect')
+    .attr('fill', t => t.profit>0?'lightgrey':'darkgrey')
+    .attr('y', t=> y(Math.max(t.profit,0)))
+    .attr('x', (t,i) => x(i))
+    .attr('height', t => y(Math.min(t.profit,0))- y(Math.max(t.profit,0)))
+    .attr('width', x.bandwidth)
+    .append('title').text(t=> `${t.buy.Date}\n\tto\n${t.sell.Date}`);
+}
 
 const parseQuotes = ({ Date, Volume, ...rest }) => {
   _.forEach(rest, (v, k) => rest[k] = +v);
@@ -150,8 +220,8 @@ const computeSummary = () => {
   const win_loss_multiple = _.round(average_win_size / average_loss_size, 1);
   const total_profit = _.round(netProfit - netLoss);
   const expectency = _.round(total_profit / played);
-  const worst_loss = -_.round(_.minBy(lossList,'profit').profit);
-  const best_win = _.round(_.maxBy(winList,'profit').profit);
+  const worst_loss = -_.round(_.minBy(lossList, 'profit').profit);
+  const best_win = _.round(_.maxBy(winList, 'profit').profit);
   _summary = { total_profit, played, expectency, wins, losses, win_percent, average_win_size, average_loss_size, win_loss_multiple, worst_loss, best_win };
 }
 const analyze = (quotes, period = 100) => {
@@ -165,9 +235,6 @@ const analyze = (quotes, period = 100) => {
   })
   detectTransactions();
   computeSummary();
-}
-const updateObservations = ()=>{
-  
 }
 const updateTransactionsSummary = () => {
   const r = x => _.round(x);
@@ -203,6 +270,7 @@ const recalculateAndDraw = (period, range) => {
 }
 const startVisualization = (quotes) => {
   initChart();
+  initObservations();
   _allQuotes = quotes;
   initControls(quotes);
   recalculateAndDraw();
