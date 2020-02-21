@@ -6,8 +6,10 @@ const height = chartSize.height - margin.top - margin.bottom;
 const slow = () => d3.transition().duration(500).ease(d3.easeLinear);
 const color = d3.scaleOrdinal(d3.schemeCategory10);
 let _allQuotes, _transactions, _summary, slider;
-const readSMA1 = () => +document.querySelector('.controls [name=period]').value || 100;
-const readRisk = () => +document.querySelector('.controls [name=risk]').value;
+const readControl = name => +document.querySelector(`.controls #${name}`).value;
+const readSMA1 = () => readControl('sma1') || 100;
+const readTolerance = () => readControl('tolerance') || 0;
+
 const getVisibleQuotes = () => {
   const range = slider.value();
   const [from, to] = range;
@@ -78,9 +80,10 @@ const initObservations = () => {
   g.append('g').attr('class', 'profits');
 
 }
+
 const initControls = () => {
-  document.querySelector('.controls [name=period]').addEventListener('change', recalculateAndDraw);
-  document.querySelector('.controls [name=risk]').addEventListener('change', recalculateAndDraw);
+  const watchChange = name=> document.querySelector(`.controls #${name}`).addEventListener('change',recalculateAndDraw);
+  'sma1,tolerance'.split(',').forEach(watchChange);
 
   slider = d3.sliderBottom()
     .min(0)
@@ -196,22 +199,24 @@ const parseQuotes = ({ Date, Volume, ...rest }) => {
   return { Date, Time: new window.Date(Date), ...rest };
 }
 
+const calculatePositionSize = (capital, risk, price)=>{
+  
+}
 const detectTransactions = () => {
-  const risk = readRisk();
+  const tolerance = readTolerance();
   const accumulateTrades = (transactions, q) => {
     const t = _.last(transactions);
     const isLong = t && t.buy && !t.sell;
-    const goLong = q.Close > q.sma;
-    const goShort = q.Close < q.sma;
-    const units = risk ? _.round(risk / (q.Close - q.sma), 3) : 1;
-    if (goLong && !isLong) transactions.push({ buy: q, units });
-    if (goShort && isLong) t.sell = q;
+    const goLong = q.Close > (q.sma + tolerance);
+    const goShort = q.Close < (q.sma - tolerance);
+    if (goLong && !isLong) transactions.push({ buy: q });
+    if (goShort && isLong) t.sell = q;     
     return transactions;
   };
   _transactions = _.reduce(_.filter(_allQuotes, 'sma'), accumulateTrades, []);
   const t = _.last(_transactions);
-  if (!t.sell) t.sell = _.last(_allQuotes);
-  _.forEach(_transactions, t => t.profit = (t.sell.Close - t.buy.Close) * t.units);
+  if (!t.sell) t.sell = _.last(_allQuotes);   
+  _.forEach(_transactions, t => t.profit = (t.sell.Close - t.buy.Close));
 }
 const computeSummary = () => {
   const winList = _.filter(_transactions, t => t.profit > 0);
@@ -226,8 +231,8 @@ const computeSummary = () => {
   const win_loss_multiple = _.round(average_win_size / average_loss_size, 1);
   const total_profit = _.round(netProfit - netLoss);
   const expectency = _.round(total_profit / played);
-  const worst_loss = -_.round(_.minBy(lossList, 'profit').profit);
-  const best_win = _.round(_.maxBy(winList, 'profit').profit);
+  const worst_loss = -_.round(_.get(_.minBy(lossList, 'profit'),'profit',0));
+  const best_win = _.round(_.get(_.maxBy(winList, 'profit'),'profit',0));
   _summary = { total_profit, played, expectency, wins, losses, win_percent, average_win_size, average_loss_size, win_loss_multiple, worst_loss, best_win };
 }
 const analyze = () => {
@@ -245,7 +250,7 @@ const analyze = () => {
 }
 const updateTransactionsSummary = () => {
   const r = x => _.round(x);
-  const toFields = (t, i) => [i + 1, t.buy.Date, t.units, r(t.buy.Close), t.sell.Date, r(t.sell.Close), r(t.profit)];
+  const toFields = (t, i) => [i + 1, t.buy.Date, r(t.buy.Close), t.sell.Date, r(t.sell.Close), r(t.profit)];
 
   document.querySelector('.transactions table tbody').innerHTML = '';
   d3.select('.transactions table tbody').selectAll('tr')

@@ -24,8 +24,9 @@ svg {
 .transactions table tr td{
   text-align: right;
 }
-.controls .small-input-text{
-  border-radius: 4px;;
+.controls input{
+  border-radius: 4px;
+  width: 35%;
 }
 .Close{
   fill: none;
