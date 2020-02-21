@@ -5,8 +5,13 @@ const height = chartSize.height - margin.top - margin.bottom;
 
 const slow = () => d3.transition().duration(500).ease(d3.easeLinear);
 const color = d3.scaleOrdinal(d3.schemeCategory10);
-let _allQuotes, _transactions, _summary;
-
+let _allQuotes, _transactions, _summary, slider;
+const readSMA1 = () => +document.querySelector('.controls [name=period]').value || 100;
+const getVisibleQuotes = () => {
+  const range = slider.value();
+  const [from, to] = range;
+  return range && _.slice(_allQuotes, from, to + 1) || _allQuotes;
+}
 const initChart = () => {
   const svg = d3.select('#chart-area').append('svg')
     .attr('height', chartSize.height)
@@ -69,39 +74,33 @@ const initObservations = () => {
   g.append('g')
     .attr('class', 'y axis');
 
-  g.append('g').attr('class','profits');
+  g.append('g').attr('class', 'profits');
 
 }
-const initControls = (quotes) => {
-  const toDateText = index => quotes[_.floor(index)].Date;
+const initControls = () => {
 
   slider = d3.sliderBottom()
     .min(0)
-    .max(quotes.length - 1)
-    .default([0, quotes.length - 1])
+    .max(_allQuotes.length - 1)
+    .default([0, _allQuotes.length - 1])
     .width(width)
     .ticks(20)
-    .tickFormat(i => quotes[_.floor(i)].Date.match(/(.*-.*)-/)[1])
+    .tickFormat(i => _allQuotes[_.floor(i)].Date.match(/(.*-.*)-/)[1])
     .fill('grey')
-    .on('onchange', ([from, to]) => {
-      d3.select('#fromDate').text(toDateText(from));
-      d3.select('#toDate').text(toDateText(to));
-      updateChart(_.slice(_allQuotes, from, to + 1));
-    });
+    .on('onchange', updateChart);
+
   const pricesG = d3.select('.prices');
   pricesG.append('text')
     .attr('id', 'fromDate')
     .attr('transform', `translate(0,${height + margin.bottom / 3})`)
-    .text(_.first(quotes).Date);
   pricesG.append('text')
     .attr('id', 'toDate')
     .attr('transform', `translate(${width},${height + margin.bottom / 3})`)
-    .text(_.last(quotes).Date);
-  const sliderG = pricesG.append('g')
+  pricesG.append('g')
     .attr('id', 'slider')
     .attr('transform', `translate(-${margin.right},${height + margin.bottom / 2})`)
     .call(slider);
-  document.querySelector('.controls [name=period]').addEventListener('change', (e) => recalculateAndDraw(+e.target.value, slider.value()));
+  document.querySelector('.controls [name=period]').addEventListener('change', recalculateAndDraw);
 }
 const addDays = (date, days) => {
   const r = new Date(date);
@@ -109,7 +108,10 @@ const addDays = (date, days) => {
   return r;
 }
 
-const updateChart = (quotes) => {
+const updateChart = () => {
+  const quotes = getVisibleQuotes();
+  d3.select('#fromDate').text(_.first(quotes).Date);
+  d3.select('#toDate').text(_.last(quotes).Date);
   const svg = d3.select('#chart-area svg');
   const smas = _.map(_.filter(quotes, 'sma'), 'sma');
   const maxDomain = Math.max(_.maxBy(quotes, 'High').High, ...smas);
@@ -179,12 +181,12 @@ const updateObservations = () => {
 
   rects.enter()
     .append('rect')
-    .attr('fill', t => t.profit>0?'lightgrey':'darkgrey')
-    .attr('y', t=> y(Math.max(t.profit,0)))
-    .attr('x', (t,i) => x(i))
-    .attr('height', t => y(Math.min(t.profit,0))- y(Math.max(t.profit,0)))
+    .attr('fill', t => t.profit > 0 ? 'lightgrey' : 'darkgrey')
+    .attr('y', t => y(Math.max(t.profit, 0)))
+    .attr('x', (t, i) => x(i))
+    .attr('height', t => y(Math.min(t.profit, 0)) - y(Math.max(t.profit, 0)))
     .attr('width', x.bandwidth)
-    .append('title').text(t=> `${t.buy.Date}\n\tto\n${t.sell.Date}`);
+    .append('title').text(t => `${t.buy.Date}\n\tto\n${t.sell.Date}`);
 }
 
 const parseQuotes = ({ Date, Volume, ...rest }) => {
@@ -261,12 +263,12 @@ const updateTransactionsSummary = () => {
   summaryTr.append('td').text(k => _summary[k]);
 
 }
-const recalculateAndDraw = (period, range) => {
-  analyze(_allQuotes, period);
-  const quotes = range && _.slice(_allQuotes, range[0], range[1] + 1) || _allQuotes;
-  updateChart(quotes);
+const recalculateAndDraw = () => {
+  analyze(_allQuotes, readSMA1());
   updateTransactionsSummary();
   updateObservations();
+
+  updateChart();
 }
 const startVisualization = (quotes) => {
   initChart();
