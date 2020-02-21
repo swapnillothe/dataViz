@@ -26,16 +26,15 @@ svg {
 }
 .controls input{
   border-radius: 4px;
-  width: 35%;
+  width: 50%;
 }
 .Close{
   fill: none;
   stroke: black;
   stroke-width: 2px;
 }
-.sma{
+.sma1,.sma2,.sma3{
   fill: none;
-  stroke: blue;
   stroke-width: 2px;
 }
 #date-range svg{

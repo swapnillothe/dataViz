@@ -29,7 +29,7 @@
       <div class="outcomes"></div>
     </div>
     <div class="row">
-      <div class="transactions col-7">
+      <div class="transactions col-6">
         <h3>Transactions</h3>
         <table class="table">
           <thead>
@@ -50,12 +50,16 @@
           <tbody></tbody>
         </table>
       </div>
-      <div class="controls col-2">
+      <div class="controls col-3">
         <h3>Controls</h3>
-        <label for="sma1">SMA</label>
-        <input type="number" id="sma1" min="0" placeholder="100">
-        <label for="tolerance">Tolerance</label>
-        <input type="number" id="tolerance" min="0" placeholder="0">       
+        <table class="table">
+          <tbody>
+            <tr><td>SMA1</td><td><input type="number" id="sma1" min="0" value="100"></td></tr>
+          <tr><td>Tolerance</td><td><input type="number" id="tolerance" min="0" placeholder="0"></td></tr>
+          <tr><td>SMA2</td><td><input type="number" id="sma2" min="0"></td></tr>
+          <tr><td>SMA3</td><td><input type="number" id="sma3" min="0"></td></tr>
+          </tbody>
+        </table>       
       </div>
       <div class="summary col-3">
         <h3>Statistics</h3>

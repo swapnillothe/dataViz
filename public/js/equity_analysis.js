@@ -45,7 +45,7 @@ const initChart = () => {
 
 
   g.append('path').attr('class', 'Close');
-  g.append('path').attr('class', 'sma');
+  smas.forEach(s=>g.append('path').attr('class',s).attr('stroke',color(s)));
 
 };
 
@@ -83,7 +83,7 @@ const initObservations = () => {
 
 const initControls = () => {
   const watchChange = name=> document.querySelector(`.controls #${name}`).addEventListener('change',recalculateAndDraw);
-  'sma1,tolerance'.split(',').forEach(watchChange);
+  'sma1,sma2,sma3,tolerance'.split(',').forEach(watchChange);
 
   slider = d3.sliderBottom()
     .min(0)
@@ -118,9 +118,9 @@ const updateChart = () => {
   d3.select('#fromDate').text(_.first(quotes).Date);
   d3.select('#toDate').text(_.last(quotes).Date);
   const svg = d3.select('#chart-area svg');
-  const smas = _.map(_.filter(quotes, 'sma'), 'sma');
-  const maxDomain = Math.max(_.maxBy(quotes, 'High').High, ...smas);
-  const minDomain = Math.min(_.minBy(quotes, 'Low').Low, ...smas);
+  const smaValues = _.filter(_.flatten(_.map(smas,s=>_.map(quotes, s))),_.identity);
+  const maxDomain = Math.max(_.maxBy(quotes, 'High').High, ...smaValues);
+  const minDomain = Math.min(_.minBy(quotes, 'Low').Low, ...smaValues);
 
   const y = d3.scaleLinear()
     .domain([minDomain, maxDomain])
@@ -152,7 +152,7 @@ const updateChart = () => {
     pricesG.select(`path.${field}`).attr('d', line(_.filter(quotes, field)));
   }
   updatePath('Close');
-  updatePath('sma');
+  smas.forEach(updatePath);
 
 }
 const updateObservations = () => {
@@ -207,13 +207,13 @@ const detectTransactions = () => {
   const accumulateTrades = (transactions, q) => {
     const t = _.last(transactions);
     const isLong = t && t.buy && !t.sell;
-    const goLong = q.Close > (q.sma + tolerance);
-    const goShort = q.Close < (q.sma - tolerance);
+    const goLong = q.Close > (q.sma1 + tolerance);
+    const goShort = q.Close < (q.sma1 - tolerance);
     if (goLong && !isLong) transactions.push({ buy: q });
     if (goShort && isLong) t.sell = q;     
     return transactions;
   };
-  _transactions = _.reduce(_.filter(_allQuotes, 'sma'), accumulateTrades, []);
+  _transactions = _.reduce(_.filter(_allQuotes, 'sma1'), accumulateTrades, []);
   const t = _.last(_transactions);
   if (!t.sell) t.sell = _.last(_allQuotes);   
   _.forEach(_transactions, t => t.profit = (t.sell.Close - t.buy.Close));
@@ -235,16 +235,22 @@ const computeSummary = () => {
   const best_win = _.round(_.get(_.maxBy(winList, 'profit'),'profit',0));
   _summary = { total_profit, played, expectency, wins, losses, win_percent, average_win_size, average_loss_size, win_loss_multiple, worst_loss, best_win };
 }
-const analyze = () => {
-  const quotes = _allQuotes, period = readSMA1();
-  _.forEach(quotes, q => delete q.sma);
+const smas = 'sma1,sma2,sma3'.split(',');
+
+const updateSMA = name=>{
+  const period = readControl(name);
+  _.forEach(_allQuotes, q => delete q[name]);
+  if(!period) return;
   let sum = 0;
-  _.forEach(quotes, (q, i) => {
+  _.forEach(_allQuotes, (q, i) => {
     const pStart = i - period;
     sum += q.Close;
-    if (pStart >= 0) sum -= quotes[pStart].Close;
-    if (pStart > 0) q.sma = _.round(sum / period);
+    if (pStart >= 0) sum -= _allQuotes[pStart].Close;
+    if (pStart > 0) q[name] = _.round(sum / period);
   })
+}
+const analyze = () => {
+  _.forEach(smas,updateSMA);
   detectTransactions();
   computeSummary();
 }
